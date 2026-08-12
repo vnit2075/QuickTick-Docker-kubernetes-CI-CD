@@ -1,9 +1,0 @@
--------------------------------------
-master node installation
--------------------------------------
-curl -sL https://tinyurl.com/mt346aen | bash
-
--------------------------------------
-worker node installation
--------------------------------------
-curl -sL https://tinyurl.com/yvmvxmzb | bash
