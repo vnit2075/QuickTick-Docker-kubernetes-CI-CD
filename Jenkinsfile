@@ -21,16 +21,22 @@ pipeline {
         }
 
         stage('Build Image with containerd') {
-            steps {
-                sh 'nerdctl build -t $IMAGE .'
-            }
-        }
+    steps {
+        sh '''
+        nerdctl --address /run/containerd/containerd.sock \
+        build -t $IMAGE .
+        '''
+    }
+}
 
-        stage('Push Image') {
-            steps {
-                sh 'nerdctl push $IMAGE'
-            }
-        }
+stage('Push Image') {
+    steps {
+        sh '''
+        nerdctl --address /run/containerd/containerd.sock \
+        push $IMAGE
+        '''
+    }
+}
 
         stage('Deploy MySQL') {
             steps {
