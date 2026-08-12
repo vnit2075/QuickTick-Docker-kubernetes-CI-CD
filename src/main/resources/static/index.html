@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickTick - Online Movie Ticket Booking</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app">
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="header-container">
+                <div class="logo-section" id="logoBtn">
+                    <span class="logo-icon"><i class="fa-solid fa-ticket-simple"></i></span>
+                    <h1 class="logo-text">QuickTick</h1>
+                </div>
+
+                <div class="search-bar-container">
+                    <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" id="movieSearchInput" placeholder="Search for Movies...">
+                </div>
+
+                <div class="nav-actions">
+                    <div class="city-selector">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <select id="citySelect">
+                            <option value="Bangalore">Bangalore</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                        </select>
+                    </div>
+
+                    <div class="auth-widget" id="authWidget">
+                        <button id="signInBtn" class="btn btn-primary btn-sm">Sign In</button>
+                        <div id="userProfile" class="user-profile hidden">
+                            <div class="profile-trigger" id="profileDropdownTrigger">
+                                <span class="avatar-icon"><i class="fa-solid fa-circle-user"></i></span>
+                                <span class="username-text" id="userNameLabel">User</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="profile-dropdown" id="profileDropdown">
+                                <a href="#" id="viewBookingsBtn"><i class="fa-solid fa-receipt"></i> My Bookings</a>
+                                <a href="#" id="adminDashboardLink" class="hidden"><i class="fa-solid fa-sliders"></i> Admin Panel</a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" id="signOutBtn"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Featured Movie Banner -->
+        <section class="hero-banner" id="heroBanner">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <span class="badge badge-featured">FEATURED MOVIE</span>
+                <h2 class="hero-title" id="heroTitle">Loading featured movie...</h2>
+                <div class="hero-meta">
+                    <span id="heroGenre"><i class="fa-solid fa-clapperboard"></i> Genre</span>
+                    <span id="heroDuration"><i class="fa-regular fa-clock"></i> Duration</span>
+                    <span id="heroLang"><i class="fa-solid fa-language"></i> Language</span>
+                </div>
+                <p class="hero-description" id="heroDesc">
+                    Select a movie below to book your tickets, view schedules, and browse cinema timings.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary btn-lg" id="heroBookBtn"><i class="fa-solid fa-ticket"></i> Book Tickets</button>
+                </div>
+            </div>
+            <div class="hero-backdrop" id="heroBackdrop"></div>
+        </section>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Filter Tabs -->
+            <div class="content-tabs">
+                <button class="tab-btn active" id="tabNowShowing" data-status="NOW_SHOWING">Now Showing</button>
+                <button class="tab-btn" id="tabUpcoming" data-status="UPCOMING">Upcoming Release</button>
+            </div>
+
+            <!-- Movies Grid -->
+            <div class="movies-grid" id="moviesGrid">
+                <!-- Movie cards are injected here via javascript -->
+                <div class="loader-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-container">
+                <p>&copy; 2026 QuickTick Ticket Booking System. Built with Spring Boot, JPA, MySQL, and Security.</p>
+                <p class="footer-credit">Developed for visual excellence and premium usability.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- 1. Authentication Modal (Login & Registration) -->
+    <div class="modal-overlay hidden" id="authModal">
+        <div class="modal-container auth-modal-box">
+            <button class="modal-close-btn auth-close-btn">&times;</button>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" id="loginTabBtn">Login</button>
+                <button class="auth-tab-btn" id="registerTabBtn">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <div class="auth-form-container" id="loginFormContainer">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="name@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••">
+                    </div>
+                    <div id="loginError" class="auth-error-msg hidden"></div>
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form-container hidden" id="registerFormContainer">
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="regName">Full Name</label>
+                        <input type="text" id="regName" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email Address</label>
+                        <input type="email" id="regEmail" required placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPhone">Phone Number</label>
+                        <input type="tel" id="regPhone" placeholder="9876543210">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" required placeholder="••••••••">
+                    </div>
+                    <div id="registerError" class="auth-error-msg hidden"></div>
+                    <div id="registerSuccess" class="auth-success-msg hidden"></div>
+                    <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Movie Details Modal -->
+    <div class="modal-overlay hidden" id="movieDetailsModal">
+        <div class="modal-container detail-modal-box">
+            <button class="modal-close-btn">&times;</button>
+            <div class="detail-grid">
+                <div class="detail-poster-container">
+                    <img id="detailPoster" src="" alt="Movie Poster">
+                </div>
+                <div class="detail-info-container">
+                    <h2 id="detailTitle" class="detail-title">Movie Title</h2>
+                    <div class="detail-tags">
+                        <span id="detailGenre" class="tag">Genre</span>
+                        <span id="detailDuration" class="tag">Duration</span>
+                        <span id="detailLang" class="tag">Language</span>
+                        <span id="detailRelease" class="tag">Release Date</span>
+                    </div>
+                    <h3>Synopsis</h3>
+                    <p id="detailDesc" class="detail-description">Movie synopsis here...</p>
+                    
+                    <div class="trailer-container">
+                        <h3>Watch Trailer</h3>
+                        <div class="trailer-video">
+                            <iframe id="detailTrailerFrame" src="" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                    </div>
+
+                    <div class="detail-booking-action">
+                        <button class="btn btn-primary btn-lg" id="detailBookBtn">Book Tickets Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Showtime Selector Modal -->
+    <div class="modal-overlay hidden" id="showtimeModal">
+        <div class="modal-container showtime-modal-box">
+            <button class="modal-close-btn">&times;</button>
+            <div class="showtime-header">
+                <h2 id="showtimeMovieTitle">Book Tickets for Movie</h2>
+                <div class="date-strip" id="dateStrip">
+                    <!-- Date selection buttons will be loaded here -->
+                </div>
+            </div>
+            <div class="showtime-theaters-list" id="showtimeTheatersList">
+                <!-- Grouped theaters and showtimes -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Interactive Seat Selector Modal -->
+    <div class="modal-overlay hidden" id="seatModal">
+        <div class="modal-container seat-modal-box">
+            <button class="modal-close-btn">&times;</button>
+            <div class="seat-modal-header">
+                <div>
+                    <h2 id="seatMovieTitle">Inception</h2>
+                    <p id="seatShowDetails">PVR Forum Mall: Screen 1 | Fri, 10 Jul | 06:00 PM</p>
+                </div>
+                <div class="seat-legend">
+                    <div class="legend-item"><span class="legend-box recliner"></span> Recliner (Gold)</div>
+                    <div class="legend-item"><span class="legend-box premium"></span> Premium (Purple)</div>
+                    <div class="legend-item"><span class="legend-box regular"></span> Regular (Blue)</div>
+                    <div class="legend-item"><span class="legend-box selected"></span> Selected</div>
+                    <div class="legend-item"><span class="legend-box booked"></span> Booked</div>
+                </div>
+            </div>
+
+            <!-- Seat Selection Grid Layout -->
+            <div class="seat-selection-container">
+                <div class="cinema-screen">
+                    <div class="screen-surface"></div>
+                    <p class="screen-text">All eyes this way</p>
+                </div>
+
+                <div class="seat-grid-container" id="seatGridContainer">
+                    <!-- Seat grid rows generated here -->
+                </div>
+            </div>
+
+            <!-- Selection summary & Action -->
+            <div class="seat-modal-footer">
+                <div class="selected-seats-info">
+                    <p class="summary-label">Selected Seats</p>
+                    <p class="summary-value" id="selectedSeatsLabel">None</p>
+                </div>
+                <div class="total-price-info">
+                    <p class="summary-label">Total Amount <span class="fee-hint">(Incl. ₹30/tkt fee)</span></p>
+                    <p class="summary-value" id="totalPriceLabel">₹0.00</p>
+                </div>
+                <button class="btn btn-primary btn-lg" id="proceedToPayBtn" disabled>Proceed to checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Checkout & Payment Modal -->
+    <div class="modal-overlay hidden" id="checkoutModal">
+        <div class="modal-container checkout-modal-box">
+            <button class="modal-close-btn">&times;</button>
+            <h2>Checkout Confirmation</h2>
+            
+            <div class="checkout-split">
+                <div class="checkout-summary-card">
+                    <h3>Booking Summary</h3>
+                    <div class="checkout-row">
+                        <span>Movie</span>
+                        <strong id="chkMovieTitle">Movie Title</strong>
+                    </div>
+                    <div class="checkout-row">
+                        <span>Theater</span>
+                        <span id="chkTheater">Theater Details</span>
+                    </div>
+                    <div class="checkout-row">
+                        <span>Showtime</span>
+                        <span id="chkShowtime">Date and Time</span>
+                    </div>
+                    <div class="checkout-row">
+                        <span>Seats</span>
+                        <strong id="chkSeats">Seats List</strong>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="checkout-row total">
+                        <span>Total Payable</span>
+                        <strong id="chkTotal">₹0.00</strong>
+                    </div>
+                </div>
+
+                <div class="payment-form-container">
+                    <h3>Virtual Secure Payment</h3>
+                    <form id="paymentForm">
+                        <div class="form-group">
+                            <label>Cardholder Name</label>
+                            <input type="text" required placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Card Number</label>
+                            <input type="text" pattern="[0-9]{16}" maxlength="16" required placeholder="1234567890123456">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expiry Date</label>
+                                <input type="text" pattern="[0-9]{2}/[0-9]{2}" maxlength="5" required placeholder="MM/YY">
+                            </div>
+                            <div class="form-group">
+                                <label>CVV</label>
+                                <input type="password" pattern="[0-9]{3}" maxlength="3" required placeholder="123">
+                            </div>
+                        </div>
+                        <div id="paymentError" class="auth-error-msg hidden"></div>
+                        <button type="submit" class="btn btn-success btn-block" id="paySubmitBtn">Pay & Confirm Tickets</button>
+                    </form>
+
+                    <!-- Payment Loading Spinner -->
+                    <div class="payment-loading hidden" id="paymentLoading">
+                        <div class="spinner"></div>
+                        <p>Processing Secure Payment...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Ticket Confirmation Modal -->
+    <div class="modal-overlay hidden" id="ticketModal">
+        <div class="modal-container ticket-modal-box">
+            <button class="modal-close-btn">&times;</button>
+            <div class="success-header">
+                <i class="fa-solid fa-circle-check success-icon"></i>
+                <h2>Booking Confirmed!</h2>
+                <p>Enjoy your movie. Your ticket details are shown below.</p>
+            </div>
+
+            <!-- Beautiful Visual Cinema Ticket -->
+            <div class="cinema-ticket" id="cinemaTicket">
+                <div class="ticket-left">
+                    <div class="ticket-brand">
+                        <i class="fa-solid fa-ticket-simple"></i> QuickTick
+                    </div>
+                    <h3 id="tktMovieTitle" class="tkt-movie-title">INCEPTION</h3>
+                    <div class="tkt-details-grid">
+                        <div class="tkt-detail">
+                            <span class="tkt-label">THEATER</span>
+                            <span class="tkt-val" id="tktTheater">PVR Forum Mall</span>
+                        </div>
+                        <div class="tkt-detail">
+                            <span class="tkt-label">SCREEN</span>
+                            <span class="tkt-val" id="tktScreen">Audi 1</span>
+                        </div>
+                        <div class="tkt-detail">
+                            <span class="tkt-label">DATE</span>
+                            <span class="tkt-val" id="tktDate">10 Jul 2026</span>
+                        </div>
+                        <div class="tkt-detail">
+                            <span class="tkt-label">TIME</span>
+                            <span class="tkt-val" id="tktTime">06:00 PM</span>
+                        </div>
+                        <div class="tkt-detail">
+                            <span class="tkt-label">SEATS</span>
+                            <span class="tkt-val" id="tktSeats">C4, C5</span>
+                        </div>
+                        <div class="tkt-detail">
+                            <span class="tkt-label">BOOKING ID</span>
+                            <span class="tkt-val" id="tktId">#123456</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ticket-divider">
+                    <div class="ticket-notch top"></div>
+                    <div class="ticket-notch bottom"></div>
+                </div>
+                <div class="ticket-right">
+                    <div class="tkt-barcode">
+                        <div class="barcode-lines"></div>
+                        <span id="barcodeValue">QCK123456</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ticket-actions">
+                <button class="btn btn-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Print Ticket</button>
+                <button class="btn btn-primary" id="ticketCloseBtn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. My Bookings Drawer / List Modal -->
+    <div class="modal-overlay hidden" id="bookingsListModal">
+        <div class="modal-container list-modal-box">
+            <button class="modal-close-btn">&times;</button>
+            <h2>My Booking History</h2>
+            <div class="bookings-history-list" id="bookingsHistoryList">
+                <!-- User bookings cards listed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Admin Dashboard Panel Modal -->
+    <div class="modal-overlay hidden" id="adminModal">
+        <div class="modal-container admin-modal-box">
+            <button class="modal-close-btn">&times;</button>
+            <div class="admin-header">
+                <h2>Admin Control Center - QuickTick</h2>
+                <div class="admin-nav-tabs">
+                    <button class="admin-tab-btn active" data-tab="adminTabDashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+                    <button class="admin-tab-btn" data-tab="adminTabMovies"><i class="fa-solid fa-film"></i> Manage Movies</button>
+                    <button class="admin-tab-btn" data-tab="adminTabShows"><i class="fa-solid fa-calendar-days"></i> Manage Shows</button>
+                    <button class="admin-tab-btn" data-tab="adminTabBookings"><i class="fa-solid fa-list-check"></i> Transactions</button>
+                    <button class="admin-tab-btn" data-tab="adminTabUsers"><i class="fa-solid fa-users"></i> Users</button>
+                </div>
+            </div>
+
+            <!-- Admin Tab Contents -->
+            <div class="admin-content-panels">
+                
+                <!-- Tab: Dashboard -->
+                <div class="admin-panel" id="adminTabDashboard">
+                    <div class="admin-stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-icon revenue"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Revenue</span>
+                                <h3 id="statRevenue">₹0.00</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon bookings"><i class="fa-solid fa-receipt"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Bookings</span>
+                                <h3 id="statBookings">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon movies"><i class="fa-solid fa-film"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-label">Active Movies</span>
+                                <h3 id="statMovies">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon users"><i class="fa-solid fa-users"></i></span>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Users</span>
+                                <h3 id="statUsers">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Manage Movies -->
+                <div class="admin-panel hidden" id="adminTabMovies">
+                    <div class="panel-header-action">
+                        <h3>Movies Catalog</h3>
+                        <button class="btn btn-primary btn-sm" id="adminAddMovieBtn"><i class="fa-solid fa-plus"></i> Add Movie</button>
+                    </div>
+                    
+                    <!-- Add Movie Form Container (Slide toggle or dialog, we do inline toggle) -->
+                    <div class="admin-form-block hidden" id="addMovieFormBlock">
+                        <h4>Create New Movie</h4>
+                        <form id="addMovieForm" class="grid-form">
+                            <div class="form-group">
+                                <label>Title</label>
+                                <input type="text" id="mFormTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Genre</label>
+                                <input type="text" id="mFormGenre" placeholder="Action / Sci-Fi" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Duration (mins)</label>
+                                <input type="number" id="mFormDuration" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Language</label>
+                                <input type="text" id="mFormLanguage" required>
+                            </div>
+                            <div class="form-group span-2">
+                                <label>Poster Image URL</label>
+                                <input type="url" id="mFormPoster" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Release Date</label>
+                                <input type="date" id="mFormRelease" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="mFormStatus">
+                                    <option value="NOW_SHOWING">NOW_SHOWING</option>
+                                    <option value="UPCOMING">UPCOMING</option>
+                                </select>
+                            </div>
+                            <div class="form-group span-2">
+                                <label>Description</label>
+                                <textarea id="mFormDesc" rows="3" required></textarea>
+                            </div>
+                            <div class="form-group span-2">
+                                <label>Trailer Embed URL</label>
+                                <input type="url" id="mFormTrailer" placeholder="https://www.youtube.com/embed/...">
+                            </div>
+                            <div class="form-actions span-2">
+                                <button type="submit" class="btn btn-success btn-sm">Save Movie</button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="cancelMovieBtn">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Poster</th>
+                                    <th>Title</th>
+                                    <th>Genre</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminMoviesTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Manage Shows -->
+                <div class="admin-panel hidden" id="adminTabShows">
+                    <div class="panel-header-action">
+                        <h3>Schedules / Shows</h3>
+                        <button class="btn btn-primary btn-sm" id="adminAddShowBtn"><i class="fa-solid fa-plus"></i> Schedule Show</button>
+                    </div>
+
+                    <!-- Add Show Form Container -->
+                    <div class="admin-form-block hidden" id="addShowFormBlock">
+                        <h4>Schedule a Movie Show</h4>
+                        <form id="addShowForm" class="grid-form">
+                            <div class="form-group">
+                                <label>Select Movie</label>
+                                <select id="sFormMovie" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Select Screen</label>
+                                <select id="sFormScreen" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Show Date</label>
+                                <input type="date" id="sFormDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Start Time (HH:MM)</label>
+                                <input type="time" id="sFormTime" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Regular Price (₹)</label>
+                                <input type="number" id="sFormRegular" value="150" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Premium Price (₹)</label>
+                                <input type="number" id="sFormPremium" value="250" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Recliner Price (₹)</label>
+                                <input type="number" id="sFormRecliner" value="450" required>
+                            </div>
+                            <div class="form-actions span-2">
+                                <button type="submit" class="btn btn-success btn-sm">Schedule</button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="cancelShowBtn">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Movie</th>
+                                    <th>Theater</th>
+                                    <th>Screen</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Prices (Reg/Prem/Rec)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminShowsTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Transactions -->
+                <div class="admin-panel hidden" id="adminTabBookings">
+                    <h3>Booking Logs</h3>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>User</th>
+                                    <th>Movie</th>
+                                    <th>Show Details</th>
+                                    <th>Amount</th>
+                                    <th>Date Booked</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminBookingsTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Users -->
+                <div class="admin-panel hidden" id="adminTabUsers">
+                    <h3>Registered Accounts</h3>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Role</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Core App JS -->
+    <script src="app.js"></script>
+</body>
+</html>
