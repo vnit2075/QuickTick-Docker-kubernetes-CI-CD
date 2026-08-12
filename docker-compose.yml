@@ -17,6 +17,8 @@ services:
 
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - quicktick-net
 
   quicktick:
 
@@ -36,7 +38,13 @@ services:
       DB_NAME: quicktick_db
       DB_USER: root
       DB_PASSWORD: root
+    networks:
+      - quicktick-net
 
 volumes:
 
   mysql-data:
+
+networks:
+  quicktick-net:
+    driver: bridge
