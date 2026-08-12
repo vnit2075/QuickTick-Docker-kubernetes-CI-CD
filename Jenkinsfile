@@ -4,6 +4,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "vnit2075/quicktick"
+	KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
